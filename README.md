@@ -16,21 +16,11 @@
 <h2>Setup:</h2>
 
     pip install -r requirements.txt
-
-## MySQL connect:
-Setting your connect in this directory
-
-    django_shop/django_shop/settings.py
-
-The default passowrd for MySQL should be:
-    
-    123456
   
 <h2>Usage:</h2>
     
     python manage.py migrate
-NEXT:
-Run djangoshop.sql with MySQL Workbench
+
 <h2>Usage:</h2>
 
     python manage.py runserver
