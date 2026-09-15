@@ -34,18 +34,3 @@ class HashTable:
                 return True
 
         return False
-if __name__ == "__main__":
-    ht = HashTable(5)
-
-    ht.put("SP001", "iPhone 15")
-    ht.put("SP002", "MacBook")
-
-    print(ht.get("SP001"))
-    print(ht.get("SP002"))
-
-    ht.put("SP001", "iPhone 15 Pro")
-
-    print(ht.get("SP001"))
-
-    print(ht.delete("SP002"))
-    print(ht.get("SP002"))
