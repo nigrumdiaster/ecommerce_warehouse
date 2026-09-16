@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Q
 from .models import Product, Category
+from .services import product_lookup_service
 
 
 def product_list(request):
@@ -14,11 +15,25 @@ def product_list(request):
 
     # Tìm kiếm theo từ khóa nếu có
     if query:
-        products = products.filter(
-            Q(name__icontains=query) |
-            Q(sku__icontains=query) |
-            Q(description__icontains=query)
-        )
+        product = product_lookup_service.lookup(query)
+
+        if product:
+            # Tìm thấy chính xác SKU trong HashTable (RAM) -> Trả về ngay, không query database
+            return render(request, 'products/product_list.html', {
+                'products': [product],
+                'categories': Category.objects.all(),
+                'query': query,
+                'selected_category': category_id,
+                'selected_status': status_filter,
+                'selected_sort': sort_by,
+                'total_count': 1,
+            })
+        else:
+            # Không khớp SKU -> Tìm kiếm Database theo tên và mô tả
+            products = products.filter(
+                Q(name__icontains=query) |
+                Q(description__icontains=query)
+            )
 
     # Lọc theo danh mục (Category)
     if category_id:
