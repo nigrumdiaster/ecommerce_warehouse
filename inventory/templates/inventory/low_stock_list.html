@@ -51,8 +51,8 @@
 <body>
 
     <div class="alert-header">
-        <h1>DANH SÁCH HÀNG SẮP CẠN KHO </h1>
-        <p>Phát hiện <strong>{{ total_warnings }}</strong> mặt hàng chạm ngưỡng cần nhập thêm!</p>
+        <h1>DANH SÁCH HÀNG SẮP CẠN KHO</h1>
+        <p>Phát hiện <strong>{{ low_stock_items|length }}</strong> mặt hàng chạm ngưỡng cần nhập thêm!</p>
     </div>
 
     <div class="table-container">
@@ -76,7 +76,7 @@
                 {% empty %}
                 <tr>
                     <td colspan="4" style="text-align: center; color: #28a745; font-weight: bold; padding: 30px;">
-                         Kho hàng đang an toàn, không có mặt hàng nào sắp cạn
+                        Kho hàng đang an toàn, không có mặt hàng nào sắp cạn
                     </td>
                 </tr>
                 {% endfor %}
