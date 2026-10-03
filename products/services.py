@@ -22,5 +22,9 @@ class ProductLookupService:
         self.load_products()
         return self.hash_table.get(sku)
 
+    def invalidate(self):
+        self.hash_table = HashTable()
+        self.loaded = False
+
 
 product_lookup_service = ProductLookupService()
