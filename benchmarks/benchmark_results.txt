@@ -1,0 +1,22 @@
+
+===== 10,000 PRODUCTS =====
+Build HashTable: 0.013086 s
+
+FOUND:
+Linear Search: 0.153203 s
+HashTable:     0.000103 s
+
+NOT FOUND:
+Linear Search: 0.106161 s
+HashTable:     0.000078 s
+
+===== 100,000 PRODUCTS =====
+Build HashTable: 0.121336 s
+
+FOUND:
+Linear Search: 1.370336 s
+HashTable:     0.000095 s
+
+NOT FOUND:
+Linear Search: 1.192384 s
+HashTable:     0.000086 s
