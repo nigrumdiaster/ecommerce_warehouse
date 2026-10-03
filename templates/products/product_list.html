@@ -377,14 +377,16 @@
                 <!-- Search input -->
                 <div class="form-group" style="grid-column: span 2;">
                     <label class="form-label" for="search-input">Tìm kiếm sản phẩm</label>
-                    <input 
+                    <input
                         type="text" 
                         id="search-input" 
                         name="q" 
                         value="{{ query }}" 
                         placeholder="Nhập tên sản phẩm, mã SKU..." 
                         class="form-input"
+                        autocomplete="off"
                     >
+                    <div id="suggestion-box" class="autocomplete-dropdown"></div>
                 </div>
 
                 <!-- Category filter -->
@@ -517,4 +519,109 @@
         </div>
     </div>
 </body>
-</html>
+<style>
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--bg-card, #1e293b);
+        border: 1px solid var(--border-color, #334155);
+        border-radius: 8px;
+        margin-top: 4px;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    .suggestion-item {
+        padding: 0.65rem 0.9rem;
+        color: var(--text-primary, #f8fafc);
+        font-size: 0.875rem;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .suggestion-item:hover {
+        background-color: var(--bg-card-hover, #273548);
+        color: #60a5fa;
+    }
+</style>
+
+<script>
+    (function() {
+        const input = document.getElementById('search-input');
+        const box = document.getElementById('suggestion-box');
+        let timer = null;
+
+        if (!input || !box) return;
+
+        // Tự động gán position: relative cho thẻ cha để không làm vỡ khung giao diện
+        if (box.parentElement) {
+            box.parentElement.style.position = 'relative';
+        }
+
+        input.addEventListener('input', function() {
+            clearTimeout(timer);
+            const keyword = this.value.trim();
+
+            if (!keyword) {
+                box.style.display = 'none';
+                box.innerHTML = '';
+                return;
+            }
+
+            // Chờ 250ms sau khi ngừng gõ để tránh gửi request liên tục (Debounce)
+            timer = setTimeout(() => {
+                fetch(`/product/autocomplete/?q=${encodeURIComponent(keyword)}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('Lỗi tải dữ liệu');
+                        return res.json();
+                    })
+                    .then(data => {
+                        box.innerHTML = '';
+                        if (data && data.length > 0) {
+                            data.forEach(item => {
+                                const row = document.createElement('div');
+                                row.className = 'suggestion-item';
+                                row.innerHTML = `🔍 <span></span>`;
+                                row.querySelector('span').textContent = item.name;
+
+                                row.onclick = function() {
+                                    input.value = item.name;
+                                    box.style.display = 'none';
+                                    if (input.form) {
+                                        input.form.submit();
+                                    }
+                                };
+
+                                box.appendChild(row);
+                            });
+                            box.style.display = 'block';
+                        } else {
+                            box.style.display = 'none';
+                        }
+                    })
+                    .catch(err => {
+                        box.style.display = 'none';
+                    });
+            }, 250);
+        });
+
+        // Ẩn menu gợi ý khi click chuột ra ngoài ô tìm kiếm
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !box.contains(e.target)) {
+                box.style.display = 'none';
+            }
+        });
+    })();
+</script>
