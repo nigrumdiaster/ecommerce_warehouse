@@ -15,6 +15,9 @@ urlpatterns = [
 
     # Inventory
     path('inventory/', include('inventory.urls')),
+
+    # Orders (Hàng đợi ưu tiên MC2)
+    path('orders/', include('orders.urls')),
 ]
 
 if settings.DEBUG:
