@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.db.models import Q
 from .models import Product, Category
-
+from django.http import JsonResponse
+from .trie import ProductTrie
 
 def product_list(request):
     query = request.GET.get('q', '').strip()
@@ -50,3 +51,24 @@ def product_list(request):
     }
     return render(request, 'products/product_list.html', context)
 
+# Khởi tạo cây Trie trong bộ nhớ RAM
+search_trie = ProductTrie()
+is_loaded = False
+def build_search_tree():
+    global is_loaded
+    products = Product.objects.filter(is_active=True).values('id', 'name')
+    for p in products:
+        search_trie.insert(p['name'], p['id'])
+    is_loaded = True
+
+def autocomplete_view(request):
+    global is_loaded
+    if not is_loaded:
+        build_search_tree()
+
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return JsonResponse([], safe=False)
+
+    suggestions = search_trie.autocomplete(q, limit=5)
+    return JsonResponse(suggestions, safe=False)
