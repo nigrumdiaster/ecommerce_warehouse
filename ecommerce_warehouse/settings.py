@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     # Apps nội bộ
     'inventory',
     'orders',
-    'products',
+    'products.apps.ProductsConfig',
 ]
 
 MIDDLEWARE = [
