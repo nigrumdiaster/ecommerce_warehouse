@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 
 from .models import Product, Category
+from .services import product_lookup_service
 from .trie import ProductTrie
 
 
@@ -46,24 +47,55 @@ def product_list(request):
     status_filter = request.GET.get('status', '')
     sort_by = request.GET.get('sort', '-created_at')
 
-    # Lấy danh sách sản phẩm
+    # Lấy danh sách sản phẩm cơ bản
     products = Product.objects.select_related('category').all()
 
-    # Tìm kiếm theo từ khóa
+    # =====================================================
+    # TÌM KIẾM
+    # =====================================================
+
     if query:
+        # Ưu tiên tìm chính xác SKU bằng HashTable trong RAM
+        product = product_lookup_service.lookup(query)
+
+        if product:
+            # Tìm thấy SKU chính xác
+            # Không cần query database để tìm sản phẩm
+            return render(
+                request,
+                'products/product_list.html',
+                {
+                    'products': [product],
+                    'categories': Category.objects.all(),
+                    'query': query,
+                    'selected_category': category_id,
+                    'selected_status': status_filter,
+                    'selected_sort': sort_by,
+                    'total_count': 1,
+                }
+            )
+
+        # Không tìm thấy SKU trong HashTable
+        # -> tìm theo tên, SKU hoặc mô tả trong Database
         products = products.filter(
             Q(name__icontains=query) |
             Q(sku__icontains=query) |
             Q(description__icontains=query)
         )
 
-    # Lọc theo danh mục
+    # =====================================================
+    # LỌC THEO CATEGORY
+    # =====================================================
+
     if category_id:
         products = products.filter(
             category_id=category_id
         )
 
-    # Lọc theo trạng thái
+    # =====================================================
+    # LỌC ACTIVE / INACTIVE
+    # =====================================================
+
     if status_filter == 'active':
         products = products.filter(
             is_active=True
@@ -74,7 +106,10 @@ def product_list(request):
             is_active=False
         )
 
-    # Các trường được phép sắp xếp
+    # =====================================================
+    # SẮP XẾP
+    # =====================================================
+
     allowed_sort_fields = [
         'price',
         '-price',
@@ -89,7 +124,6 @@ def product_list(request):
     else:
         products = products.order_by('-created_at')
 
-    # Lấy danh mục
     categories = Category.objects.all()
 
     context = {
@@ -114,7 +148,6 @@ def product_list(request):
 # =========================================================
 
 def recent_dashboard_view(request):
-    # Lấy tất cả sản phẩm
     all_products = list(Product.objects.all())
 
     # Sắp xếp bằng Quick Sort
