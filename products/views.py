@@ -1,5 +1,4 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Q
 from django.http import JsonResponse
 
 from .models import Product, Category
@@ -39,63 +38,15 @@ def quick_sort_products(arr):
 # DANH SÁCH SẢN PHẨM
 def product_list(request):
     query = request.GET.get('q', '').strip()
-    category_id = request.GET.get('category', '')
-    status_filter = request.GET.get('status', '')
+    category_id = request.GET.get('category', '').strip()
     sort_by = request.GET.get('sort', '-created_at')
 
-    # Lấy danh sách sản phẩm cơ bản
-    products = Product.objects.select_related('category').all()
-
-    # TÌM KIẾM
-    if query:
-        # Ưu tiên tìm chính xác SKU bằng HashTable trong RAM
-        product = product_lookup_service.lookup(query)
-
-        if product:
-            # Tìm thấy SKU chính xác
-            # Không cần query database để tìm sản phẩm
-            return render(
-                request,
-                'products/product_list.html',
-                {
-                    'products': [product],
-                    'categories': Category.objects.all(),
-                    'query': query,
-                    'selected_category': category_id,
-                    'selected_status': status_filter,
-                    'selected_sort': sort_by,
-                    'total_count': 1,
-                }
-            )
-
-        # Không tìm thấy SKU trong HashTable
-        # -> tìm theo tên, SKU hoặc mô tả trong Database
-        products = products.filter(
-            Q(name__icontains=query) |
-            Q(sku__icontains=query) |
-            Q(description__icontains=query)
-        )
-
-
-    # LỌC THEO CATEGORY
-
-
-    if category_id:
-        products = products.filter(
-            category_id=category_id
-        )
-
-
-    # LỌC ACTIVE / INACTIVE
-    if status_filter == 'active':
-        products = products.filter(
-            is_active=True
-        )
-
-    elif status_filter == 'inactive':
-        products = products.filter(
-            is_active=False
-        )
+    if not category_id:
+        products = product_lookup_service.search(query)
+    elif category_id.isdecimal():
+        products = product_lookup_service.search(query, int(category_id))
+    else:
+        products = []
 
 
     # SẮP XẾP
@@ -108,10 +59,12 @@ def product_list(request):
         '-created_at'
     ]
 
-    if sort_by in allowed_sort_fields:
-        products = products.order_by(sort_by)
-    else:
-        products = products.order_by('-created_at')
+    sort_field = sort_by if sort_by in allowed_sort_fields else '-created_at'
+    products = sorted(
+        products,
+        key=lambda product: getattr(product, sort_field.lstrip('-')),
+        reverse=sort_field.startswith('-')
+    )
 
     categories = Category.objects.all()
 
@@ -120,9 +73,8 @@ def product_list(request):
         'categories': categories,
         'query': query,
         'selected_category': category_id,
-        'selected_status': status_filter,
         'selected_sort': sort_by,
-        'total_count': products.count(),
+        'total_count': len(products),
     }
 
     return render(

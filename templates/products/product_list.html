@@ -344,16 +344,6 @@
             </select>
         </div>
 
-        <!-- Status filter -->
-        <div class="form-group">
-            <label class="form-label" for="status-select">Trạng thái</label>
-            <select id="status-select" name="status" class="form-select">
-                <option value="">-- Tất cả trạng thái --</option>
-                <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Đang kinh doanh</option>
-                <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Tạm ngưng</option>
-            </select>
-        </div>
-
         <!-- Sort -->
         <div class="form-group">
             <label class="form-label" for="sort-select">Sắp xếp</label>
@@ -371,7 +361,7 @@
             <button type="submit" class="btn btn-primary" style="flex: 1;">
                 <i class="fa-solid fa-filter"></i> Lọc
             </button>
-            {% if query or selected_category or selected_status or selected_sort != '-created_at' %}
+            {% if query or selected_category or selected_sort != '-created_at' %}
                 <a href="{% url 'product_list' %}" class="btn btn-secondary">
                     <i class="fa-solid fa-rotate-left"></i> Đặt lại
                 </a>
@@ -448,13 +438,13 @@
             <div class="empty-icon"><i class="fa-solid fa-box-open"></i></div>
             <h2 class="empty-title">Chưa có sản phẩm nào</h2>
             <p class="empty-desc">
-                {% if query or selected_category or selected_status %}
+                {% if query or selected_category %}
                     Không tìm thấy sản phẩm nào khớp với bộ lọc hiện tại.
                 {% else %}
                     Hiện tại hệ thống chưa có dữ liệu sản phẩm. Hãy vào trang Quản trị (Admin) để tạo sản phẩm mẫu.
                 {% endif %}
             </p>
-            {% if query or selected_category or selected_status %}
+            {% if query or selected_category %}
                 <a href="{% url 'product_list' %}" class="btn btn-secondary"><i class="fa-solid fa-filter-circle-xmark"></i> Xóa bộ lọc</a>
             {% else %}
                 <a href="/admin/products/product/add/" target="_blank" class="btn btn-primary"><i class="fa-solid fa-plus"></i> + Thêm sản phẩm ngay</a>
