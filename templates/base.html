@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Warehouse Management System{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #0b1329;
+            --bg-card: #152238;
+            --bg-card-hover: #1c2e4c;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent-blue: #38bdf8;
+            --accent-blue-hover: #0284c7;
+            --accent-indigo: #6366f1;
+            --accent-purple: #a855f7;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            
+            --border-color: #1e293b;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(21, 34, 56, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Top Navigation */
+        .navbar {
+            background: rgba(11, 19, 41, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .nav-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+        }
+
+        .brand-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.95rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background: var(--bg-card);
+            border-color: var(--glass-border);
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+            border-color: var(--accent-indigo);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .nav-btn-admin {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-btn-admin:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: var(--accent-emerald);
+            color: #ffffff;
+        }
+
+        /* Common Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-blue);
+            background-color: var(--bg-card-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent-rose);
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        /* Messages */
+        .messages-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-msg {
+            padding: 0.9rem 1.25rem;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .alert-msg-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+        }
+
+        .alert-msg-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
+        }
+
+        .alert-msg-error {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: #fda4af;
+        }
+
+        .alert-msg-info {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #7dd3fc;
+        }
+
+        /* Main Content Wrapper */
+        main {
+            flex-grow: 1;
+            margin-bottom: 3rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-light);
+            padding: 1.5rem 0;
+            background: rgba(11, 19, 41, 0.6);
+            backdrop-filter: blur(12px);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dsa-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .dsa-tag {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+        }
+
+        @media (max-width: 768px) {
+            .nav-wrapper {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-menu {
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- TOP NAVIGATION -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="{% url 'home_dashboard' %}" class="brand">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <div>
+                        <div class="brand-title">Warehouse Management</div>
+                        <div class="brand-sub">DSA High Performance System</div>
+                    </div>
+                </a>
+
+                <ul class="nav-menu">
+                    <li>
+                        <a href="{% url 'home_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'home_dashboard' or request.resolver_match.url_name == 'recent_dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-chart-pie"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'product_list' %}" class="nav-link {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_detail' %}active{% endif %}">
+                            <i class="fa-solid fa-box-open"></i> Kho & Tìm kiếm
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'order_queue' %}" class="nav-link {% if request.resolver_match.url_name == 'order_queue' %}active{% endif %}">
+                            <i class="fa-solid fa-truck-fast"></i> Hàng đợi Đơn
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'low_stock' %}" class="nav-link {% if request.resolver_match.url_name == 'low_stock' %}active{% endif %}">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Tồn kho thấp
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/" target="_blank" class="nav-link nav-btn-admin">
+                            <i class="fa-solid fa-shield-halved"></i> Django Admin
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN BODY -->
+    <main>
+        <div class="container">
+            <!-- Messages Banner -->
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert-msg alert-msg-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+                    {% if message.tags == 'success' %}
+                        <i class="fa-solid fa-circle-check"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    {% else %}
+                        <i class="fa-solid fa-circle-info"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <strong>E-Commerce Warehouse System</strong> &bull; Đồ án Cấu trúc Dữ liệu & Giải thuật
+                </div>
+                <div class="dsa-tags">
+                    <span class="dsa-tag"><i class="fa-solid fa-hashtag"></i> HashTable O(1)</span>
+                    <span class="dsa-tag"><i class="fa-solid fa-sitemap"></i> Trie Tree</span>
+                    <span class="dsa-tag"><i class="fa-solid fa-layer-group"></i> MaxHeap O(log N)</span>
+                    <span class="dsa-tag"><i class="fa-solid fa-arrow-down-a-z"></i> QuickSort O(N log N)</span>
+                    <span class="dsa-tag"><i class="fa-solid fa-rotate"></i> Recursion</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -6,8 +6,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from products.views import recent_dashboard_view
 
 urlpatterns = [
+    # Dashboard Trang chủ
+    path('', recent_dashboard_view, name='home_dashboard'),
+
     path('admin/', admin.site.urls),
 
     # Product

@@ -10,7 +10,6 @@ def order_queue_view(request):
     """
     Giao diện điều phối hàng đợi đơn hàng ưu tiên (MC2).
     """
-    # Đảm bảo nạp dữ liệu vào Heap
     order_queue_service.load_pending_orders()
 
     next_order = order_queue_service.peek_next_order()

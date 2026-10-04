@@ -1,88 +1,234 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Cảnh báo Hàng sắp cạn</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            padding: 20px;
-        }
+{% extends 'base.html' %}
 
-        .alert-header {
-            background-color: #dc3545;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
+{% block title %}Cảnh Báo Tồn Kho Thấp (Recursion Filter) - Warehouse System{% endblock %}
 
-        .table-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-top: 20px;
-        }
+{% block extra_head %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    .page-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #f43f5e, #fb923c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
 
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
+    .alert-banner {
+        background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(251, 146, 60, 0.1));
+        border: 1px solid rgba(244, 63, 94, 0.25);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
 
-        th {
-            background-color: #f2f2f2;
-        }
+    .alert-info h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fecdd3;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-        .warning-text {
-            color: #dc3545;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-    </style>
-</head>
-<body>
+    .alert-info p {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.35rem;
+    }
 
-    <div class="alert-header">
-        <h1>DANH SÁCH HÀNG SẮP CẠN KHO</h1>
-        <p>Phát hiện <strong>{{ low_stock_items|length }}</strong> mặt hàng chạm ngưỡng cần nhập thêm!</p>
+    .dsa-badge {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.4rem 0.85rem;
+        border-radius: 20px;
+        background: rgba(244, 63, 94, 0.2);
+        color: #fda4af;
+        border: 1px solid rgba(244, 63, 94, 0.4);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .table-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(16px);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .custom-table th {
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .custom-table td {
+        padding: 1.1rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    .custom-table tbody tr {
+        transition: background 0.2s;
+    }
+
+    .custom-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .product-meta {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-title-text {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .product-sku-code {
+        font-size: 0.75rem;
+        font-family: monospace;
+        color: var(--accent-blue);
+        margin-top: 0.2rem;
+    }
+
+    .stock-highlight {
+        font-weight: 800;
+        color: var(--accent-rose);
+        font-size: 1.2rem;
+    }
+
+    .status-badge-urgent {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: rgba(244, 63, 94, 0.15);
+        color: #fb7185;
+        border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .empty-state {
+        padding: 4rem 1.5rem;
+        text-align: center;
+        color: var(--accent-emerald);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        Cảnh Báo Hàng Sắp Cạn Kho
+    </h1>
+    <div>
+        <a href="{% url 'product_list' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-boxes-stacked"></i> Xem toàn bộ kho
+        </a>
     </div>
+</div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Tên sản phẩm</th>
-                    <th>Số lượng tồn hiện tại</th>
-                    <th>Ngưỡng cảnh báo</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in low_stock_items %}
-                <tr>
-                    <td><strong>{{ item.product.name }}</strong></td>
-                    <td class="warning-text">{{ item.quantity }}</td>
-                    <td>{{ item.min_threshold }}</td>
-                    <td>Cần nhập gấp</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center; color: #28a745; font-weight: bold; padding: 30px;">
-                        Kho hàng đang an toàn, không có mặt hàng nào sắp cạn
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="alert-banner">
+    <div class="alert-info">
+        <h2>
+            <i class="fa-solid fa-bell"></i>
+            Phát hiện {{ low_stock_items|length }} mặt hàng chạm ngưỡng cảnh báo
+        </h2>
+        <p>Số lượng tồn kho hiện tại nhỏ hơn hoặc bằng định mức an toàn tối thiểu (Min Threshold).</p>
     </div>
+    <div class="dsa-badge">
+        <i class="fa-solid fa-rotate"></i> Thuật toán Đệ quy tuyến tính (Recursion)
+    </div>
+</div>
 
-</body>
-</html>
+<div class="table-card">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th style="width: 50px;">#</th>
+                <th>Thông tin sản phẩm</th>
+                <th>Số lượng tồn hiện tại</th>
+                <th>Ngưỡng tối thiểu</th>
+                <th>Tình trạng</th>
+                <th style="text-align: right;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in low_stock_items %}
+            <tr>
+                <td style="color: var(--text-muted); font-weight: 700;">{{ forloop.counter }}</td>
+                <td>
+                    <div class="product-meta">
+                        <span class="product-title-text">{{ item.product.name }}</span>
+                        <span class="product-sku-code"><i class="fa-solid fa-barcode"></i> {{ item.product.sku }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="stock-highlight">{{ item.quantity }}</span> <span style="font-size: 0.8rem; color: var(--text-muted);">đơn vị</span>
+                </td>
+                <td style="color: var(--text-secondary); font-weight: 600;">
+                    {{ item.min_threshold }}
+                </td>
+                <td>
+                    <span class="status-badge-urgent">
+                        <i class="fa-solid fa-circle-exclamation"></i> Cần nhập thêm gấp
+                    </span>
+                </td>
+                <td style="text-align: right;">
+                    <a href="{% url 'product_detail' item.product.id %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                        <i class="fa-solid fa-eye"></i> Chi tiết
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-circle-check" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-emerald);"></i>
+                        <h3 style="font-size: 1.2rem; margin-bottom: 0.35rem; color: #fff;">Kho hàng đang ở trạng thái an toàn!</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">Không có sản phẩm nào chạm hoặc dưới ngưỡng tồn kho tối thiểu.</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

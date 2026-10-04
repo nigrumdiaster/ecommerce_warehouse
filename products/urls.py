@@ -12,11 +12,21 @@ urlpatterns = [
         name='recent_dashboard'
     ),
 
-    # Chi tiết sản phẩm
+    # Chi tiết sản phẩm (Hỗ trợ nhiều dạng URL)
     path(
         'view/<int:product_id>/',
         views.product_detail_mock,
         name='product_detail'
+    ),
+    path(
+        '<int:product_id>/',
+        views.product_detail_mock,
+        name='product_detail_id'
+    ),
+    path(
+        'detail/<int:product_id>/',
+        views.product_detail_mock,
+        name='product_detail_alt'
     ),
 
     # Autocomplete tìm kiếm bằng Trie

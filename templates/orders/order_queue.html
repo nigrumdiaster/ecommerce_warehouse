@@ -1,467 +1,391 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC2 - Điều Phối Đơn Hàng Ưu Tiên (Max-Heap)</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --urgent-color: #ef4444;
-            --high-color: #f59e0b;
-            --normal-color: #10b981;
-            --btn-primary: #3b82f6;
-            --btn-primary-hover: #2563eb;
-            --accent-glow: rgba(59, 130, 246, 0.2);
-        }
+{% extends 'base.html' %}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+{% block title %}Điều Phối Đơn Hàng Ưu Tiên (Max-Heap Queue) - Warehouse System{% endblock %}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            padding: 24px;
-            min-height: 100vh;
-        }
+{% block extra_head %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    .page-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #60a5fa, #f59e0b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid var(--card-border);
-            padding: 24px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
+    .grid-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
 
-        .header h1 {
-            font-size: 1.6rem;
-            color: #60a5fa;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-tag {
-            background: #1e3a8a;
-            color: #93c5fd;
-            font-size: 0.8rem;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-top: 6px;
-        }
-
-        .messages {
-            margin-bottom: 20px;
-        }
-
-        .alert {
-            padding: 14px 18px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; }
-        .alert-warning { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; }
-        .alert-info { background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd; }
-
+    @media (max-width: 900px) {
         .grid-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
+            grid-template-columns: 1fr;
         }
+    }
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+    .card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(16px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
 
-        .card-title {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-primary);
+    }
 
-        /* Next Order Spotlight */
-        .spotlight-card {
-            background: linear-gradient(145deg, #1e293b, #172554);
-            border: 1px solid #3b82f6;
-            box-shadow: 0 0 20px var(--accent-glow);
-        }
+    .spotlight-card {
+        background: linear-gradient(145deg, rgba(21, 34, 56, 0.9), rgba(23, 37, 84, 0.7));
+        border: 1px solid rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.25);
+    }
 
-        .spotlight-content {
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 18px;
-        }
+    .spotlight-content {
+        background: rgba(11, 19, 41, 0.7);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
 
-        .spotlight-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
+    .spotlight-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+    }
 
-        .spotlight-label { color: var(--text-secondary); }
-        .spotlight-value { font-weight: 600; color: #f8fafc; }
+    .spotlight-row:last-child {
+        margin-bottom: 0;
+    }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 20px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            width: 100%;
-        }
+    .spotlight-label {
+        color: var(--text-secondary);
+    }
 
-        .btn-primary {
-            background: var(--btn-primary);
-            color: white;
-        }
+    .spotlight-value {
+        font-weight: 600;
+        color: #f8fafc;
+    }
 
-        .btn-primary:hover {
-            background: var(--btn-primary-hover);
-            transform: translateY(-1px);
-        }
+    /* Forms */
+    .form-group {
+        margin-bottom: 1rem;
+    }
 
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
+    .form-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.35rem;
+    }
 
-        .btn-success:hover {
-            background: #059669;
-        }
+    .form-control {
+        width: 100%;
+        padding: 0.65rem 0.9rem;
+        background: rgba(11, 19, 41, 0.8);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
 
-        .btn-secondary {
-            background: #475569;
-            color: #f1f5f9;
-        }
+    .form-control:focus {
+        border-color: var(--accent-blue);
+    }
 
-        /* Form */
-        .form-group {
-            margin-bottom: 14px;
-        }
+    /* Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
 
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
+    .badge-urgent {
+        background: rgba(244, 63, 94, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(244, 63, 94, 0.4);
+    }
 
-        .form-control {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 6px;
-            background: #0f172a;
-            border: 1px solid var(--card-border);
-            color: white;
-            font-size: 0.9rem;
-        }
+    .badge-high {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+    }
 
-        .form-control:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
+    .badge-normal {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+    }
 
-        /* Badge */
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
+    /* Custom Table */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
 
-        .badge-urgent { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
-        .badge-high { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid #f59e0b; }
-        .badge-normal { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid #10b981; }
+    .custom-table th {
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--glass-border);
+    }
 
-        /* Table */
-        .table-responsive {
-            overflow-x: auto;
-            margin-top: 12px;
-        }
+    .custom-table td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.9rem;
-        }
+    .custom-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
 
-        th {
-            background-color: #0f172a;
-            color: var(--text-secondary);
-            padding: 12px 14px;
-            font-weight: 600;
-            border-bottom: 1px solid var(--card-border);
-        }
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}
 
-        td {
-            padding: 12px 14px;
-            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-        }
-
-        tr:hover {
-            background-color: rgba(51, 65, 85, 0.3);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 30px;
-            color: var(--text-secondary);
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-
-    <!-- Header -->
-    <div class="header">
-        <div>
-            <h1>
-                📦 MC2 — Điều Phối Đơn Hàng Ưu Tiên
-                <span class="header-tag">Max-Heap Algorithm</span>
-            </h1>
-            <p>Hàng đợi bốc đơn đóng gói theo mức độ ưu tiên và thời gian đặt (FIFO trong cùng mức) bằng Cấu trúc dữ liệu Max-Heap thuần.</p>
-        </div>
-        <div>
-            <a href="{% url 'reload_order_queue' %}" class="btn btn-secondary" style="width: auto; padding: 8px 16px;">
-                🔄 Đồng bộ lại DB
-            </a>
-        </div>
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fa-solid fa-dolly" style="color: var(--accent-amber);"></i>
+            Điều Phối Hàng Đợi Đơn Hàng Ưu Tiên
+        </h1>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Điều phối bốc đơn theo mức ưu tiên & thời gian đặt (FIFO trong cùng mức) bằng Cấu trúc dữ liệu <strong>Max-Heap O(log N)</strong>.
+        </p>
     </div>
-
-    <!-- Messages -->
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
+    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <a href="{% url 'reload_order_queue' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrows-rotate"></i> Đồng bộ lại Heap
+        </a>
     </div>
-    {% endif %}
-
-    <!-- Grid Top -->
-    <div class="grid-layout">
-        
-        <!-- 1. Đơn hàng ưu tiên số 1 (Gốc của MaxHeap) -->
-        <div class="card spotlight-card">
-            <div class="card-title">
-                <span>🎯 Đơn hàng cần đóng gói tiếp theo (Heap Root)</span>
-                <span class="badge badge-urgent">Đang chờ: {{ queue_count }}</span>
-            </div>
-
-            {% if next_order %}
-            <div class="spotlight-content">
-                <div class="spotlight-row">
-                    <span class="spotlight-label">Mã đơn hàng:</span>
-                    <span class="spotlight-value" style="color: #60a5fa; font-size: 1.1rem;">#{{ next_order.order_code }}</span>
-                </div>
-                <div class="spotlight-row">
-                    <span class="spotlight-label">Khách hàng:</span>
-                    <span class="spotlight-value">{{ next_order.customer_name }}</span>
-                </div>
-                <div class="spotlight-row">
-                    <span class="spotlight-label">Mức độ ưu tiên:</span>
-                    <span>
-                        {% if next_order.priority == 3 %}
-                            <span class="badge badge-urgent">🔥 Hỏa tốc (Urgent)</span>
-                        {% elif next_order.priority == 2 %}
-                            <span class="badge badge-high">⚡ Giao nhanh (High)</span>
-                        {% else %}
-                            <span class="badge badge-normal">📦 Tiêu chuẩn (Normal)</span>
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="spotlight-row">
-                    <span class="spotlight-label">Thời gian tạo:</span>
-                    <span class="spotlight-value">{{ next_order.created_at|date:"d/m/Y H:i:s" }}</span>
-                </div>
-                <div class="spotlight-row">
-                    <span class="spotlight-label">Tổng tiền:</span>
-                    <span class="spotlight-value">{{ next_order.total_amount }} VNĐ</span>
-                </div>
-            </div>
-
-            <form method="POST" action="{% url 'process_next_order' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary" style="font-size: 1.05rem; padding: 12px;">
-                    🚀 Bốc đơn này để xử lý kho (pop_max)
-                </button>
-            </form>
-            {% else %}
-            <div class="empty-state">
-                <p>🎉 Tuyệt vời! Hiện tại không còn đơn hàng nào trong hàng đợi PENDING.</p>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- 2. Tạo đơn hàng nhanh để test MaxHeap -->
-        <div class="card">
-            <div class="card-title">
-                <span>➕ Tạo đơn hàng kiểm thử (push)</span>
-            </div>
-            <form method="POST" action="{% url 'create_mock_order' %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label>Mức độ ưu tiên:</label>
-                    <select name="priority" class="form-control" required>
-                        <option value="3">🔥 Mức 3 - Hỏa tốc / Đơn gấp (Urgent)</option>
-                        <option value="2">⚡ Mức 2 - Giao nhanh (High)</option>
-                        <option value="1" selected>📦 Mức 1 - Tiêu chuẩn (Normal)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tên khách hàng:</label>
-                    <input type="text" name="customer_name" class="form-control" placeholder="Nguyễn Văn A" required>
-                </div>
-                <div class="form-group">
-                    <label>Địa chỉ giao:</label>
-                    <input type="text" name="shipping_address" class="form-control" placeholder="Quận 1, TP. Hồ Chí Minh" required>
-                </div>
-                <button type="submit" class="btn btn-success">
-                    Thêm đơn vào Hàng đợi Max-Heap
-                </button>
-            </form>
-        </div>
-
-    </div>
-
-    <!-- 3. Bảng danh sách Hàng đợi trong RAM (Heap snapshot) -->
-    <div class="card" style="margin-bottom: 24px;">
-        <div class="card-title">
-            <span>📋 Danh sách đơn hàng trong Hàng đợi Max-Heap ({{ queue_count }} đơn)</span>
-        </div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Mã đơn</th>
-                        <th>Khách hàng</th>
-                        <th>Mức ưu tiên</th>
-                        <th>Thời gian tạo</th>
-                        <th>Tổng tiền</th>
-                        <th>Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in queue_orders %}
-                    <tr>
-                        <td><strong>#{{ order.order_code }}</strong></td>
-                        <td>{{ order.customer_name }}</td>
-                        <td>
-                            {% if order.priority == 3 %}
-                                <span class="badge badge-urgent">🔥 Hỏa tốc (3)</span>
-                            {% elif order.priority == 2 %}
-                                <span class="badge badge-high">⚡ Giao nhanh (2)</span>
-                            {% else %}
-                                <span class="badge badge-normal">📦 Tiêu chuẩn (1)</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ order.created_at|date:"d/m/Y H:i:s" }}</td>
-                        <td>{{ order.total_amount }} đ</td>
-                        <td><span style="color: #fbbf24;">● Chờ xử lý</span></td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="empty-state">Không có đơn hàng nào trong hàng đợi.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 4. Lịch sử đơn vừa bốc xử lý -->
-    <div class="card">
-        <div class="card-title">
-            <span>🕒 Đơn hàng vừa bốc xử lý gần đây</span>
-        </div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Mã đơn</th>
-                        <th>Khách hàng</th>
-                        <th>Mức ưu tiên</th>
-                        <th>Trạng thái</th>
-                        <th>Cập nhật lúc</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in recent_processed %}
-                    <tr>
-                        <td>#{{ order.order_code }}</td>
-                        <td>{{ order.customer_name }}</td>
-                        <td>
-                            {% if order.priority == 3 %}
-                                <span class="badge badge-urgent">Hỏa tốc</span>
-                            {% elif order.priority == 2 %}
-                                <span class="badge badge-high">Giao nhanh</span>
-                            {% else %}
-                                <span class="badge badge-normal">Tiêu chuẩn</span>
-                            {% endif %}
-                        </td>
-                        <td><span style="color: #60a5fa;">Đang đóng gói kho</span></td>
-                        <td>{{ order.updated_at|date:"d/m/Y H:i:s" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="empty-state">Chưa có đơn hàng nào được bốc xử lý.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
 </div>
 
-</body>
-</html>
+<!-- Top Grid: Next Order Spotlight & Create Mock Order -->
+<div class="grid-layout">
+    <!-- 1. Spotlight: Đơn hàng ưu tiên số 1 (Heap Root) -->
+    <div class="card spotlight-card">
+        <div class="card-title">
+            <span><i class="fa-solid fa-bullseye" style="color: var(--accent-blue);"></i> Đơn hàng cần đóng gói tiếp theo (Heap Root)</span>
+            <span class="badge badge-urgent">Đang chờ: {{ queue_count }}</span>
+        </div>
+
+        {% if next_order %}
+        <div class="spotlight-content">
+            <div class="spotlight-row">
+                <span class="spotlight-label">Mã đơn hàng:</span>
+                <span class="spotlight-value" style="color: #60a5fa; font-size: 1.1rem;">#{{ next_order.order_code }}</span>
+            </div>
+            <div class="spotlight-row">
+                <span class="spotlight-label">Khách hàng:</span>
+                <span class="spotlight-value">{{ next_order.customer_name }}</span>
+            </div>
+            <div class="spotlight-row">
+                <span class="spotlight-label">Mức độ ưu tiên:</span>
+                <span>
+                    {% if next_order.priority == 3 %}
+                        <span class="badge badge-urgent"><i class="fa-solid fa-fire"></i> Hỏa tốc (Urgent)</span>
+                    {% elif next_order.priority == 2 %}
+                        <span class="badge badge-high"><i class="fa-solid fa-bolt"></i> Giao nhanh (High)</span>
+                    {% else %}
+                        <span class="badge badge-normal"><i class="fa-solid fa-box"></i> Tiêu chuẩn (Normal)</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="spotlight-row">
+                <span class="spotlight-label">Thời gian tạo:</span>
+                <span class="spotlight-value">{{ next_order.created_at|date:"d/m/Y H:i:s" }}</span>
+            </div>
+            <div class="spotlight-row">
+                <span class="spotlight-label">Tổng tiền:</span>
+                <span class="spotlight-value" style="color: var(--accent-emerald);">{{ next_order.total_amount }} ₫</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'process_next_order' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+                <i class="fa-solid fa-rocket"></i> Bốc đơn này để xử lý kho (pop_max)
+            </button>
+        </form>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; color: var(--accent-emerald); margin-bottom: 0.75rem;"></i>
+            <p>Tuyệt vời! Hiện tại không còn đơn hàng nào trong hàng đợi PENDING.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 2. Tạo đơn hàng nhanh để test MaxHeap -->
+    <div class="card">
+        <div class="card-title">
+            <span><i class="fa-solid fa-plus-circle" style="color: var(--accent-emerald);"></i> Tạo đơn hàng kiểm thử (push)</span>
+            <span class="dsa-tag">MaxHeap.push()</span>
+        </div>
+        <form method="POST" action="{% url 'create_mock_order' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Mức độ ưu tiên:</label>
+                <select name="priority" class="form-control" required>
+                    <option value="3">🔥 Mức 3 - Hỏa tốc / Đơn gấp (Urgent)</option>
+                    <option value="2">⚡ Mức 2 - Giao nhanh (High)</option>
+                    <option value="1" selected>📦 Mức 1 - Tiêu chuẩn (Normal)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tên khách hàng:</label>
+                <input type="text" name="customer_name" class="form-control" placeholder="Nguyễn Văn A" required>
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ giao:</label>
+                <input type="text" name="shipping_address" class="form-control" placeholder="Quận 1, TP. Hồ Chí Minh" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; background: var(--accent-emerald);">
+                <i class="fa-solid fa-arrow-down-to-bracket"></i> Thêm đơn vào Hàng đợi Max-Heap
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 3. Bảng danh sách Hàng đợi trong RAM (Heap snapshot) -->
+<div class="card" style="margin-bottom: 2rem; overflow: hidden; padding: 0;">
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 700; font-size: 1.1rem; color: #fff;">
+            <i class="fa-solid fa-list-ol" style="color: var(--accent-blue);"></i>
+            Danh sách đơn hàng trong Hàng đợi Max-Heap ({{ queue_count }} đơn)
+        </span>
+        <span class="dsa-tag">RAM Snapshot</span>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Mức ưu tiên</th>
+                    <th>Thời gian tạo</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in queue_orders %}
+                <tr>
+                    <td><strong>#{{ order.order_code }}</strong></td>
+                    <td>{{ order.customer_name }}</td>
+                    <td>
+                        {% if order.priority == 3 %}
+                            <span class="badge badge-urgent"><i class="fa-solid fa-fire"></i> Hỏa tốc (3)</span>
+                        {% elif order.priority == 2 %}
+                            <span class="badge badge-high"><i class="fa-solid fa-bolt"></i> Giao nhanh (2)</span>
+                        {% else %}
+                            <span class="badge badge-normal"><i class="fa-solid fa-box"></i> Tiêu chuẩn (1)</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 0.85rem;">{{ order.created_at|date:"d/m/Y H:i:s" }}</td>
+                    <td style="color: var(--accent-blue); font-weight: 700;">{{ order.total_amount }} ₫</td>
+                    <td><span style="color: #fbbf24; font-weight: 600;">● Chờ xử lý</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">Không có đơn hàng nào trong hàng đợi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 4. Lịch sử đơn vừa bốc xử lý -->
+<div class="card" style="overflow: hidden; padding: 0;">
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--glass-border);">
+        <span style="font-weight: 700; font-size: 1.1rem; color: #fff;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-purple);"></i>
+            Đơn hàng vừa bốc xử lý gần đây
+        </span>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Mức ưu tiên</th>
+                    <th>Trạng thái</th>
+                    <th>Cập nhật lúc</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_processed %}
+                <tr>
+                    <td><strong>#{{ order.order_code }}</strong></td>
+                    <td>{{ order.customer_name }}</td>
+                    <td>
+                        {% if order.priority == 3 %}
+                            <span class="badge badge-urgent">Hỏa tốc</span>
+                        {% elif order.priority == 2 %}
+                            <span class="badge badge-high">Giao nhanh</span>
+                        {% else %}
+                            <span class="badge badge-normal">Tiêu chuẩn</span>
+                        {% endif %}
+                    </td>
+                    <td><span style="color: #60a5fa; font-weight: 600;"><i class="fa-solid fa-box-open"></i> Đang đóng gói kho</span></td>
+                    <td style="color: var(--text-secondary); font-size: 0.85rem;">{{ order.updated_at|date:"d/m/Y H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">Chưa có đơn hàng nào được bốc xử lý.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

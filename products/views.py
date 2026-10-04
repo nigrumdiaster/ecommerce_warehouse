@@ -7,10 +7,8 @@ from .services import product_lookup_service
 from .trie import ProductTrie
 
 
-# =========================================================
-# QUICK SORT
-# =========================================================
 
+# QUICK SORT
 def quick_sort_products(arr):
     if len(arr) <= 1:
         return arr
@@ -37,10 +35,8 @@ def quick_sort_products(arr):
     )
 
 
-# =========================================================
-# DANH SÁCH SẢN PHẨM
-# =========================================================
 
+# DANH SÁCH SẢN PHẨM
 def product_list(request):
     query = request.GET.get('q', '').strip()
     category_id = request.GET.get('category', '')
@@ -50,10 +46,7 @@ def product_list(request):
     # Lấy danh sách sản phẩm cơ bản
     products = Product.objects.select_related('category').all()
 
-    # =====================================================
     # TÌM KIẾM
-    # =====================================================
-
     if query:
         # Ưu tiên tìm chính xác SKU bằng HashTable trong RAM
         product = product_lookup_service.lookup(query)
@@ -83,19 +76,17 @@ def product_list(request):
             Q(description__icontains=query)
         )
 
-    # =====================================================
+
     # LỌC THEO CATEGORY
-    # =====================================================
+
 
     if category_id:
         products = products.filter(
             category_id=category_id
         )
 
-    # =====================================================
-    # LỌC ACTIVE / INACTIVE
-    # =====================================================
 
+    # LỌC ACTIVE / INACTIVE
     if status_filter == 'active':
         products = products.filter(
             is_active=True
@@ -106,10 +97,8 @@ def product_list(request):
             is_active=False
         )
 
-    # =====================================================
-    # SẮP XẾP
-    # =====================================================
 
+    # SẮP XẾP
     allowed_sort_fields = [
         'price',
         '-price',
@@ -143,14 +132,12 @@ def product_list(request):
     )
 
 
-# =========================================================
+
 # DASHBOARD - 10 SẢN PHẨM MỚI NHẤT
-# =========================================================
-
 def recent_dashboard_view(request):
-    all_products = list(Product.objects.all())
+    all_products = list(Product.objects.select_related('category').all())
 
-    # Sắp xếp bằng Quick Sort
+    # Sắp xếp bằng Quick Sort (Mới nhất -> Cũ nhất)
     sorted_products = quick_sort_products(all_products)
 
     # Lấy 10 sản phẩm mới nhất
@@ -165,29 +152,34 @@ def recent_dashboard_view(request):
     )
 
 
-# =========================================================
-# CHI TIẾT SẢN PHẨM
-# =========================================================
 
+# CHI TIẾT SẢN PHẨM
 def product_detail_mock(request, product_id):
     product = get_object_or_404(
-        Product,
+        Product.objects.select_related('category'),
         id=product_id
     )
+
+    stock = None
+    try:
+        from inventory.models import Stock
+        stock = Stock.objects.filter(product=product).first()
+    except Exception:
+        pass
 
     return render(
         request,
         'products/product_detail.html',
         {
-            'product': product
+            'product': product,
+            'stock': stock,
         }
     )
 
 
-# =========================================================
-# TRIE AUTOCOMPLETE
-# =========================================================
 
+
+# TRIE AUTOCOMPLETE
 # Khởi tạo cây Trie trong bộ nhớ RAM
 search_trie = ProductTrie()
 
