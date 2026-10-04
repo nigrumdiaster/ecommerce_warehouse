@@ -72,4 +72,4 @@ class RecentlyViewedService:
 
 
 product_lookup_service = ProductLookupService()
-recently_viewed_service = RecentlyViewedService(capacity=8)
+recently_viewed_service = RecentlyViewedService(capacity=9)
