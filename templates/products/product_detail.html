@@ -21,7 +21,7 @@
         padding: 2.25rem;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
         max-width: 960px;
-        margin: 0 auto;
+        margin: 0 auto 2.5rem;
     }
 
     .product-main-grid {
@@ -145,6 +145,87 @@
         align-items: center;
         gap: 0.5rem;
     }
+
+    /* Recently Viewed Section */
+    .recent-section {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+
+    .recent-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+    }
+
+    .recent-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .recent-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .recent-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(12px);
+        border-radius: 14px;
+        padding: 1rem;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.25s ease;
+    }
+
+    .recent-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-blue);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .recent-card-img {
+        height: 110px;
+        border-radius: 8px;
+        background: rgba(11, 19, 41, 0.8);
+        overflow: hidden;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .recent-card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .recent-card-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .recent-card-price {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--accent-blue);
+        margin-top: auto;
+    }
 </style>
 {% endblock %}
 
@@ -251,4 +332,36 @@
         {% endif %}
     </div>
 </div>
+
+<!-- RECENTLY VIEWED (DOUBLY LINKED LIST LRU) -->
+{% if recently_viewed %}
+<div class="recent-section">
+    <div class="recent-header">
+        <h2 class="recent-title">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-purple);"></i>
+            Sản Phẩm Bạn Vừa Xem Gần Đây
+        </h2>
+        <span class="dsa-tag"><i class="fa-solid fa-link"></i> Singly Linked List (LRU)</span>
+    </div>
+
+    <div class="recent-grid">
+        {% for item in recently_viewed %}
+        <a href="{% url 'product_detail' item.id %}" class="recent-card">
+            <div class="recent-card-img">
+                {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                {% else %}
+                    <i class="fa-solid fa-image" style="color: var(--text-muted); font-size: 1.5rem;"></i>
+                {% endif %}
+            </div>
+            <div class="recent-card-title">{{ item.name }}</div>
+            <div style="font-size: 0.75rem; font-family: monospace; color: var(--text-secondary); margin-bottom: 0.4rem;">
+                {{ item.sku }}
+            </div>
+            <div class="recent-card-price">{{ item.price|floatformat:0 }} ₫</div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

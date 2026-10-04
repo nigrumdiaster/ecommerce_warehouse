@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 
 from .models import Product, Category
-from .services import product_lookup_service
+from .services import product_lookup_service, recently_viewed_service
 from .trie import ProductTrie
 
 
@@ -159,6 +159,17 @@ def product_detail_mock(request, product_id):
         Product.objects.select_related('category'),
         id=product_id
     )
+    if not request.session.session_key:
+        request.session.save()
+    session_key = request.session.session_key
+
+    # Ghi nhận sản phẩm vừa xem
+    user = request.user if request.user.is_authenticated else None
+    recently_viewed_service.record_view(product, session_key, user=user)
+
+    # Lấy danh sách sản phẩm vừa xem
+    all_recent = recently_viewed_service.get_recently_viewed(session_key)
+    recently_viewed = [p for p in all_recent if p.id != product.id]
 
     stock = None
     try:
@@ -173,6 +184,7 @@ def product_detail_mock(request, product_id):
         {
             'product': product,
             'stock': stock,
+            'recently_viewed': recently_viewed,
         }
     )
 
