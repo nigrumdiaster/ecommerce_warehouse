@@ -210,3 +210,74 @@ def test_lookup_after_load_uses_no_database_query(
 
     assert result is not None
     assert result.id == product.id
+
+
+@pytest.mark.django_db
+def test_search_and_category_use_hash_tables_without_database_queries(
+    lookup_service, django_assert_num_queries
+):
+    phones = Category.objects.create(name="Điện thoại")
+    laptops = Category.objects.create(name="Laptop")
+    phone = Product.objects.create(
+        name="iPhone 15 Pro", sku="IP15P-128", category=phones,
+        description="Titan tự nhiên", price=25000000
+    )
+    Product.objects.create(name="iPhone Laptop", sku="LAPTOP-1", category=laptops, price=20000000)
+    lookup_service.load_products()
+
+    with django_assert_num_queries(0):
+        exact_sku = lookup_service.search("IP15P-128", phones.id)
+        partial_name = lookup_service.search("phone 15", phones.id)
+        description = lookup_service.search("titan", phones.id)
+        short_query = lookup_service.search("iP", phones.id)
+        wrong_category = lookup_service.search("IP15P-128", laptops.id)
+        category_only = lookup_service.search(category_id=phones.id)
+
+    assert exact_sku == [phone]
+    assert partial_name == [phone]
+    assert description == [phone]
+    assert short_query == [phone]
+    assert wrong_category == []
+    assert category_only == [phone]
+
+
+@pytest.mark.django_db
+def test_product_list_keeps_search_and_sort_but_removes_status_filter(client, lookup_service):
+    category = Category.objects.create(name="Điện thoại")
+    expensive = Product.objects.create(
+        name="iPhone Pro", sku="PHONE-PRO", category=category,
+        price=200, is_active=False
+    )
+    cheap = Product.objects.create(
+        name="iPhone Base", sku="PHONE-BASE", category=category, price=100
+    )
+    response = client.get('/product/', {
+        'q': 'iPhone', 'category': str(category.id), 'status': 'active', 'sort': 'price'
+    })
+
+    assert response.status_code == 200
+    assert response.context['products'] == [cheap, expensive]
+    assert response.context['total_count'] == 2
+    assert response.context['selected_sort'] == 'price'
+    assert 'name="q"' in response.content.decode()
+    assert 'name="sort"' in response.content.decode()
+    assert 'name="status"' not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_category_hash_index_refreshes_when_product_moves_or_category_is_deleted(lookup_service):
+    original = Category.objects.create(name="Điện thoại")
+    destination = Category.objects.create(name="Laptop")
+    destination_id = destination.id
+    product = Product.objects.create(name="iPhone", sku="PHONE-1", category=original, price=100)
+    assert lookup_service.search(category_id=original.id) == [product]
+
+    product.category = destination
+    product.name = "MacBook"
+    product.save()
+    assert lookup_service.search('iPhone', original.id) == []
+    assert lookup_service.search('MacBook', destination_id) == [product]
+
+    destination.delete()
+    assert lookup_service.search(category_id=destination_id) == []
+    assert lookup_service.search('MacBook')[0].category_id is None
